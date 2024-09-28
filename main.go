@@ -44,4 +44,46 @@ func main() {
 	}
 
 	fmt.Printf("version=%s\n", version)
+
+	// calling createCategory
+	fmt.Printf("Creating Category in PostgreSQL!\n")
+
+	err = createCategoryTableAndInsertData(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Category table created and data is inserted!\n")
+
+	// Count the rows in the Category table
+	var count int
+	err = db.QueryRow(`SELECT COUNT(*) FROM Category;`).Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Number of rows in Category table: %d\n", count)
+
+}
+
+func createCategoryTableAndInsertData(db *sql.DB) error {
+	// Create the Category table
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS Category (
+        CategoryID SERIAL PRIMARY KEY,
+        Name VARCHAR(50) NOT NULL
+    );`)
+	if err != nil {
+		return fmt.Errorf("error creating Category table: %v", err)
+	}
+
+	// Insert 5 elements into the Category table
+	categories := []string{"Electronics", "Apparel", "Toys", "Books", "Furniture"}
+	for _, name := range categories {
+		_, err = db.Exec(`INSERT INTO Category (Name) VALUES ($1);`, name)
+		if err != nil {
+			return fmt.Errorf("error inserting into Category: %v", err)
+		}
+	}
+
+	return nil
 }
